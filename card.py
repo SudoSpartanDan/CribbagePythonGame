@@ -30,7 +30,7 @@ class Card:
         return "Card()"
 
     def __str__(self):
-        # IF ACE or TEN, JACK, QUEEN, KING
+        # IF ACE or TEN, JACK, QUEEN, KING; use the first letter of the name
         if(self.value.value == 1 or self.value.value >= 10):
             return '[{0}{1}]'.format(self.value.name[0], self.suit.name[0])
         else:

@@ -1,4 +1,5 @@
 class Player:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.score = 0
-        print('{0} Created'.format(name))
+        self.name = name
+        self.hand = []
