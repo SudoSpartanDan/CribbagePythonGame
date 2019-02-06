@@ -6,8 +6,6 @@ def pegPhase(game: Game):
     #game.crib.append(game.cpu.hand.pop(random.randrange(5)))
 
 def discardPhase(game: Game):
-    firstCard = -1
-    secondCard = -1
     while True:
         try:
             firstCard = int(input('Choose first card to give to crib (1-6): '))
@@ -20,17 +18,16 @@ def discardPhase(game: Game):
         else:
             game.crib.append(game.player.hand.pop(firstCard-1))
             break
+    print(game.getPlayerHandString(), '\n')
+
     while True:
         try:
-            secondCard = int(input('Choose second card to give to crib (1-6): '))
+            secondCard = int(input('Choose second card to give to crib (1-5): '))
         except ValueError:
-            print('Error: Please enter a number 1-6.')
+            print('Error: Please enter a number 1-5.')
             continue
-        if(secondCard < 1 or secondCard > 6):
-            print('Error: Please enter a number 1-6.')
-            continue
-        elif(secondCard == firstCard):
-            print('Error: Please do not select the same card.')
+        if(secondCard < 1 or secondCard > 5):
+            print('Error: Please enter a number 1-5.')
             continue
         else:
             game.crib.append(game.player.hand.pop(secondCard-1))
