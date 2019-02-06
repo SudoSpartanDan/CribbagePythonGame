@@ -4,19 +4,18 @@ from player import Player
 from card import Card, CardSuit, CardValue
 from deck import Deck
 
-def findFifteens(cards, partial=[]):
+def findFifteens(cards, fifteensFound, partial=[]):
     cardsTotal = sum(min(card.value.value, 10) for card in partial)
 
     if cardsTotal == 15:
-        print('15')
-        print(' '.join(['%s' % c for c in partial]))
+        fifteensFound += [partial]
     if cardsTotal >= 15:
         return
     
     for i in range(len(cards)):
         card = cards[i]
         remaining = cards[i+1:]
-        findFifteens(remaining, partial + [card])
+        findFifteens(remaining, fifteensFound, partial + [card])
 
 class Game:
     def __init__(self):
@@ -37,8 +36,15 @@ class Game:
         # Player
         playerHand = self.player.hand
         playerHand.append(self.cutCard)
-        findFifteens(playerHand)
-        
+        fifteensFound = []
+        scoreThisRound = 0
+        findFifteens(playerHand, fifteensFound)
+        for fifteen in fifteensFound:
+            scoreThisRound += 2
+            print('15 - {0}'.format(scoreThisRound))
+            print(' '.join(['%s' % c for c in fifteen]))
+
+        self.player.score += scoreThisRound
 
     def getScoreBoardString(self):
         playerScore = '{0:16s}: {1:3d}'.format(self.player.name, self.player.score)
