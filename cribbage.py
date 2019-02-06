@@ -1,10 +1,38 @@
 import random
+import copy
 from game import Game
 
 def pegPhase(game: Game):
     currentChain = []
-    playerHand = game.player.hand
-    cpuHand = game.cpu.hand
+    playerHand = copy.deepcopy(game.player.hand)
+    cpuHand = copy.deepcopy(game.cpu.hand)
+    # Allows switching who goes first
+    if(game.currentDealer == game.cpu):
+        currentChain.append(cpuHand.pop(random.randrange(len(cpuHand))))
+        print('CPU plays {0}'.format(currentChain[-1]))
+    while(len(playerHand) > 0 or len(cpuHand) > 0):
+        # check current chain
+
+        print(' '.join(['%s' % c for c in playerHand]))
+        # User input
+        if(len(playerHand) > 0):
+            while True:
+                try:
+                    cardIndex = int(input('Choose a card to play (1-{0}): '.format(len(playerHand))))
+                except ValueError:
+                    print('Error: Please enter a number 1-{0}.'.format(len(playerHand)))
+                    continue
+                if(cardIndex < 1 or cardIndex > len(playerHand)):
+                    print('Error: Please enter a number 1-{0}.'.format(len(playerHand)))
+                    continue
+                else:
+                    currentChain.append(playerHand.pop(cardIndex-1))
+                    break
+            print('Player plays {0}'.format(currentChain[-1]))
+        # CPU Turn
+        if(len(cpuHand) > 0):
+            currentChain.append(cpuHand.pop(random.randrange(len(cpuHand))))
+            print('CPU plays {0}'.format(currentChain[-1]))
 
 
 def discardPhase(game: Game):
