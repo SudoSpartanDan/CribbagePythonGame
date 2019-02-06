@@ -35,3 +35,12 @@ class Card:
             return '[{0}{1}]'.format(self.value.name[0], self.suit.name[0])
         else:
             return '[{0}{1}]'.format(self.value.value, self.suit.name[0])
+
+    def __eq__(self, other):
+        return ((self.value.value == other.value.value) and (self.suit.value == other.suit.value))
+        
+    def __lt__(self, other):
+        return self.value.value < other.value.value
+
+    def __gt__(self, other):
+        return self.value.value > other.value.value
