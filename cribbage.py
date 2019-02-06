@@ -62,6 +62,9 @@ def main():
         print()
         print(game.getScoreBoardString(), '\n')
         game.endRound()
+        if(game.isComplete()):
+            print('Game Complete')
+            break
         game.switchDealer()
 
 main()

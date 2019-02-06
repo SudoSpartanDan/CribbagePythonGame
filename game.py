@@ -156,6 +156,11 @@ class Game:
         self.player.hand = []
         self.cpu.hand = []
 
+    def isComplete(self):
+        if(self.player.score >= 121 or self.cpu.score >= 121):
+            return True
+        return False
+
     def getScoreBoardString(self):
         playerScore = '{0:16s}: {1:3d}'.format(self.player.name, self.player.score)
         cpuScore = '{0:16s}: {1:3d}'.format(self.cpu.name, self.cpu.score)
