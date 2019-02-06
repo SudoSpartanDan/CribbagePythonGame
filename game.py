@@ -1,5 +1,5 @@
-import math
-import itertools
+import random
+import copy
 from player import Player
 from card import Card, CardSuit, CardValue
 from deck import Deck
@@ -65,8 +65,9 @@ def findNob(hand, cutCard):
             return True
     return False
 
-def calculateScoreForPlayer(hand, cutCard):
-    playerHand = hand
+def calculateScoreForHand(hand, cutCard):
+    # We're going to play with this a lot, so don't want to affect the original
+    playerHand = copy.deepcopy(hand)
     playerHand.append(cutCard)
     scoreThisRound = 0
     # Find and print fifteens
@@ -119,8 +120,19 @@ class Game:
         self.player = Player('Player')
         self.cpu = Player('CPU')
         self.cutCard = None
+        self.currentDealer = None
         self.deck = Deck()
         self.crib = []
+
+    def determineDealer(self):
+        r = random.randrange(1)
+        self.currentDealer = self.player if r==1 else self.cpu
+
+    def switchDealer(self):
+        if(self.currentDealer == self.player):
+            self.currentDealer = self.cpu
+        else:
+            self.currentDealer = self.player
 
     def dealCards(self):
         self.deck.shuffle()
@@ -130,10 +142,19 @@ class Game:
         self.cutCard = self.deck.cut()
 
     def calculatePlayerScore(self):
-        self.player.score += calculateScoreForPlayer(self.player.hand, self.cutCard)
+        self.player.score += calculateScoreForHand(self.player.hand, self.cutCard)
 
     def calculateCPUScore(self):
-        self.cpu.score += calculateScoreForPlayer(self.cpu.hand, self.cutCard)
+        self.cpu.score += calculateScoreForHand(self.cpu.hand, self.cutCard)
+
+    def calculateCribScore(self):
+        self.currentDealer.score += calculateScoreForHand(self.crib, self.cutCard)
+
+    def endRound(self):
+        self.crib = []
+        self.cutCard = None
+        self.player.hand = []
+        self.cpu.hand = []
 
     def getScoreBoardString(self):
         playerScore = '{0:16s}: {1:3d}'.format(self.player.name, self.player.score)

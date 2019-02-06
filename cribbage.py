@@ -3,7 +3,9 @@ from game import Game
 
 def pegPhase(game: Game):
     currentChain = []
-    #game.crib.append(game.cpu.hand.pop(random.randrange(5)))
+    playerHand = game.player.hand
+    cpuHand = game.cpu.hand
+
 
 def discardPhase(game: Game):
     while True:
@@ -42,19 +44,24 @@ def discardPhase(game: Game):
 def main():
     game = Game()
     # Start the game
+    game.determineDealer()
     while True:
         print('Dealing Cards', '\n')
         game.dealCards()
         print(game.getPlayerHandString(), '\n')
         discardPhase(game)
-        print()
+        pegPhase(game)
         print('Player Hand: {0} Cut Card: {1}'.format(game.getPlayerHandString(), game.cutCard))
         game.calculatePlayerScore()
         print()
         print('CPU Hand:    {0} Cut Card: {1}'.format(game.getCPUHandString(), game.cutCard))
         game.calculateCPUScore()
         print()
+        print('Crib Hand:   {0} Cut Card: {1}'.format(game.getCribHandString(), game.cutCard))
+        game.calculateCribScore()
+        print()
         print(game.getScoreBoardString(), '\n')
-        break
+        game.endRound()
+        game.switchDealer()
 
 main()
