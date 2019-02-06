@@ -4,18 +4,21 @@ from game import Game
 
 def pegPhase(game: Game):
     currentChain = []
+    currentChainPoints = 0
     playerHand = copy.deepcopy(game.player.hand)
     cpuHand = copy.deepcopy(game.cpu.hand)
     # Allows switching who goes first
     if(game.currentDealer == game.cpu):
         currentChain.append(cpuHand.pop(random.randrange(len(cpuHand))))
+        currentChainPoints += min(currentChain[-1].value.value, 10)
         print('CPU plays {0}'.format(currentChain[-1]))
     while(len(playerHand) > 0 or len(cpuHand) > 0):
         # check current chain
+        
 
-        print(' '.join(['%s' % c for c in playerHand]))
+        print('Player Hand: {0}'.format(' '.join(['%s' % c for c in playerHand])))
         # User input
-        if(len(playerHand) > 0):
+        if(len(playerHand) > 1):
             while True:
                 try:
                     cardIndex = int(input('Choose a card to play (1-{0}): '.format(len(playerHand))))
@@ -27,11 +30,18 @@ def pegPhase(game: Game):
                     continue
                 else:
                     currentChain.append(playerHand.pop(cardIndex-1))
+                    currentChainPoints += min(currentChain[-1].value.value, 10)
                     break
+            print('Player plays {0}'.format(currentChain[-1]))
+        # Just auto play
+        elif(len(playerHand) == 1):
+            currentChain.append(playerHand.pop(0))
+            currentChainPoints += min(currentChain[-1].value.value, 10)
             print('Player plays {0}'.format(currentChain[-1]))
         # CPU Turn
         if(len(cpuHand) > 0):
             currentChain.append(cpuHand.pop(random.randrange(len(cpuHand))))
+            currentChainPoints += min(currentChain[-1].value.value, 10)
             print('CPU plays {0}'.format(currentChain[-1]))
 
 
@@ -48,7 +58,7 @@ def discardPhase(game: Game):
         else:
             game.crib.append(game.player.hand.pop(firstCard-1))
             break
-    print(game.getPlayerHandString(), '\n')
+    print('Player Hand: {0}'.format(game.getPlayerHandString()))
 
     while True:
         try:
@@ -74,21 +84,22 @@ def main():
     # Start the game
     game.determineDealer()
     while True:
-        print('Dealing Cards', '\n')
+        print('------------------- THE DEAL -------------------')
         game.dealCards()
-        print(game.getPlayerHandString(), '\n')
+        print('Player Hand: {0}'.format(game.getPlayerHandString()))
         discardPhase(game)
+        print('------------------- THE PLAY -------------------')
         pegPhase(game)
+        print('------------------- THE SHOW -------------------')
         print('Player Hand: {0} Cut Card: {1}'.format(game.getPlayerHandString(), game.cutCard))
         game.calculatePlayerScore()
-        print()
         print('CPU Hand:    {0} Cut Card: {1}'.format(game.getCPUHandString(), game.cutCard))
         game.calculateCPUScore()
-        print()
+        print('------------------- THE CRIB -------------------')
         print('Crib Hand:   {0} Cut Card: {1}'.format(game.getCribHandString(), game.cutCard))
         game.calculateCribScore()
-        print()
-        print(game.getScoreBoardString(), '\n')
+        print('------------------- SCORE -------------------')
+        print(game.getScoreBoardString())
         game.endRound()
         if(game.isComplete()):
             print('Game Complete')

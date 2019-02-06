@@ -75,7 +75,7 @@ def calculateScoreForHand(hand, cutCard):
     findFifteens(playerHand, fifteensFound)
     for fifteen in fifteensFound:
         scoreThisRound += 2
-        print('15 - {0}'.format(scoreThisRound))
+        print('15 for {0}'.format(scoreThisRound))
         #print(' '.join(['%s' % c for c in fifteen]))
     # Find and print pairs
     pairsFound = findPairs(playerHand)
