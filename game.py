@@ -129,7 +129,7 @@ def selectCardToDiscard(hand):
     print('Player Hand: {0}'.format(' '.join(['%s' % c for c in hand])))
     while True:
         try:
-            cardIndex = int(input('Choose card (1-{0}): '.format(len(hand)))) - 1
+            cardIndex = int(input('Choose a card to discard (1-{0}): '.format(len(hand)))) - 1
         except ValueError:
             print('Error: Please enter a number 1-{0}.'.format(len(hand)))
             continue
