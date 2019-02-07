@@ -26,6 +26,26 @@ class Card:
         self.value = value
         self.suit = suit
 
+    @property
+    def valueStr(self):
+        return self.value.name
+
+    @property
+    def valueInt(self):
+        return self.value.value
+
+    @property
+    def valuePoints(self):
+        return min(self.value.value, 10)
+
+    @property
+    def suitStr(self):
+        return self.suit.name
+
+    @property
+    def suitInt(self):
+        return self.suit.value
+
     def __repr__(self):
         return "Card()"
 

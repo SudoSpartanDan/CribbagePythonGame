@@ -12,7 +12,7 @@ def main():
         print('Player Hand: {0}'.format(game.getPlayerHandString()))
         game.discard()
         print('------------------- THE PLAY -------------------')
-        game.play()
+        game.playRound()
         print('------------------- THE SHOW -------------------')
         print('Player Hand: {0} Cut Card: {1}'.format(game.getPlayerHandString(), game.cutCard))
         game.calculatePlayerScore()

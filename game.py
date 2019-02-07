@@ -3,6 +3,7 @@ import copy
 from player import Player
 from card import Card, CardSuit, CardValue
 from deck import Deck
+from play import Play
 
 class Game:
     def __init__(self):
@@ -33,74 +34,59 @@ class Game:
     def discard(self):
         # Player discard
         # First
-        self.crib.append(selectCard(self.player.hand))
+        self.crib.append(selectCardToDiscard(self.player.hand))
         # Second
-        self.crib.append(selectCard(self.player.hand))
+        self.crib.append(selectCardToDiscard(self.player.hand))
         # CPU Discard
         # First
         self.crib.append(self.cpu.hand.pop(random.randrange(len(self.cpu.hand))))
         # Second
         self.crib.append(self.cpu.hand.pop(random.randrange(len(self.cpu.hand))))
 
-    def play(self):
-        currentChain = []
-        currentChainPoints = 0
-        playerPasses = False
-        cpuPasses = False
+    def playRound(self):
+        play = Play()
         playerHand = copy.deepcopy(self.player.hand)
         cpuHand = copy.deepcopy(self.cpu.hand)
         # Allows switching who goes first
         if(self.currentDealer == self.cpu):
-            currentChainPoints += cpuPlay(cpuHand, currentChain, currentChainPoints)
-            print(currentChainPoints)
+            play.takeCPUTurn(cpuHand)
+            print(play.points)
         while(len(playerHand) > 0 or len(cpuHand) > 0):
             # User input
-            if(canPlay(playerHand, currentChainPoints)):
-                currentChainPoints += playerPlay(playerHand, currentChain, currentChainPoints)
-                self.player.score += checkChainForExtraPoints(currentChain)
-                print(currentChainPoints, end='')
-                if(currentChainPoints == 31):
+            if(play.canHandPlay(playerHand)):
+                play.takePlayerTurn(playerHand)
+                self.player.score += play.calculateExtraPoints()
+                print(play.points, end='')
+                if(play.points == 31):
                     print(' for 2')
                     self.player.score += 2
-                    currentChain = []
-                    currentChainPoints = 0
-                    playerPasses = False
-                    cpuPasses = False
+                    play.reset()
                 print()
             else:
-                playerPasses = True
-                if(playerPasses and cpuPasses):
+                play.playerPasses = True
+                if(play.everyonePassed()):
                     print('One for last')
                     self.player.score += 1
-                    currentChain = []
-                    currentChainPoints = 0
-                    playerPasses = False
-                    cpuPasses = False
+                    play.reset()
                 else:
                     print('Player "GO"')
 
             # CPU Turn
-            if(canPlay(cpuHand, currentChainPoints)):
-                currentChainPoints += cpuPlay(cpuHand, currentChain, currentChainPoints)
-                self.cpu.score += checkChainForExtraPoints(currentChain)
-                print(currentChainPoints, end='')
-                if(currentChainPoints == 31):
+            if(play.canHandPlay(cpuHand)):
+                play.takeCPUTurn(cpuHand)
+                self.cpu.score += play.calculateExtraPoints()
+                print(play.points, end='')
+                if(play.points == 31):
                     print(' for 2')
                     self.cpu.score += 2
-                    currentChain = []
-                    currentChainPoints = 0
-                    playerPasses = False
-                    cpuPasses = False
+                    play.reset()
                 print()
             else:
-                cpuPasses = True
-                if(playerPasses and cpuPasses):
+                play.cpuPasses = True
+                if(play.everyonePassed()):
                     print('One for last')
                     self.cpu.score += 1
-                    currentChain = []
-                    currentChainPoints = 0
-                    playerPasses = False
-                    cpuPasses = False
+                    play.reset()
                 else:
                     print('CPU "GO"')
                 
@@ -139,95 +125,22 @@ class Game:
     def getCribHandString(self):
         return ' '.join(['%s' % c for c in self.crib])
 
-def selectCard(hand, pointLimit=0):
+def selectCardToDiscard(hand):
     print('Player Hand: {0}'.format(' '.join(['%s' % c for c in hand])))
     while True:
         try:
-            cardIndex = int(input('Choose card (1-{0}): '.format(len(hand))))
+            cardIndex = int(input('Choose card (1-{0}): '.format(len(hand)))) - 1
         except ValueError:
             print('Error: Please enter a number 1-{0}.'.format(len(hand)))
             continue
-        if(cardIndex < 1 or cardIndex > len(hand)):
+        if(cardIndex < 0 or cardIndex >= len(hand)):
             print('Error: Please enter a number 1-{0}.'.format(len(hand)))
             continue
-        if(pointLimit > 0 and hand[cardIndex].value.value > pointLimit):
-            print('Error: That card cannot be played. Please enter a different number 1-{0}.'.format(len(hand)))
-            continue
         else:
-            return hand.pop(cardIndex-1)
-
-def cpuPlay(cpuHand, chain, chainPoints):
-    # First find playable cards
-    playableCardIndexes = []
-    pointLimit = 31-chainPoints
-    for i, card in enumerate(cpuHand):
-        if(card.value.value <= pointLimit):
-            playableCardIndexes.append(i)
-    # Select a random card for now
-    cpuCardPlayed = cpuHand.pop(random.choice(playableCardIndexes))
-    chain.append(cpuCardPlayed)
-    print('CPU plays {0}'.format(cpuCardPlayed))
-    return min(cpuCardPlayed.value.value, 10)
-
-def playerPlay(playerHand, chain, chainPoints):
-    # Auto Play
-    if(len(playerHand) == 1):
-        playerCardPlayed = playerHand.pop(0)
-    else:
-        playerCardPlayed = selectCard(playerHand, 31-chainPoints)
-    chain.append(playerCardPlayed)
-    print('Player plays {0}'.format(playerCardPlayed))
-    return min(playerCardPlayed.value.value, 10)
-
-def checkChainForExtraPoints(chain):
-    # Can't get extra points if nothing is there
-    if(chain == []):
-        return 0
-    extraPoints = 0
-    # Check for fifteen
-    if(sum(min(card.value.value, 10) for card in chain) == 15):
-        extraPoints += 2
-        print("15 for 2")
-
-    # Check for like cards
-    currentCardValue = chain[-1].value
-    pairLength = 1
-    for card in reversed(chain[:-1]):
-        if(card.value == currentCardValue):
-            pairLength += 1
-        else:
-            break
-    if(pairLength == 2):
-        print('Pair for 2')
-        extraPoints += 2
-    elif(pairLength == 3):
-        print('Royal Pair for 6')
-        extraPoints += 6
-    elif(pairLength == 4):
-        print('Double Royal Pair for 12')
-        extraPoints += 12
-
-    # Check for runs
-    # Only if the chain is 3 or more cards
-    if(len(chain) > 2):
-        # Only checking last three cards
-        sortedThree = sorted(chain[-3:], reverse=True)
-        currentCardValue = sortedThree[0].value
-        if(sortedThree[0].value == (sortedThree[1].value.value-1) and sortedThree[0].value == (sortedThree[2].value.value-2)):
-            print('Run for 3')
-            extraPoints += 3
-
-    return extraPoints
-
-def canPlay(hand, chainPoints):
-    if(len(hand) > 0):
-        for card in hand:
-            if(min(card.value.value, 10)+chainPoints <= 31):
-                return True
-    return False
+            return hand.pop(cardIndex)
 
 def findFifteens(cards, fifteensFound, partial=[]):
-    cardsTotal = sum(min(card.value.value, 10) for card in partial)
+    cardsTotal = sum(card.valuePoints for card in partial)
 
     if cardsTotal == 15:
         fifteensFound += [partial]
@@ -259,13 +172,13 @@ def findRun(cards):
     run = []
     lastCardValue = -1
     for card in sortedHand:
-        if(card.value.value != lastCardValue-1):
+        if(card.valueInt != lastCardValue-1):
             if(len(run) > 2):
                 return run
             run = [card]
         else:
             run.append(card)
-        lastCardValue = card.value.value
+        lastCardValue = card.valueInt
     return run
 
 def findFlush(hand, cutCard):
@@ -297,7 +210,6 @@ def calculateScoreForHand(hand, cutCard):
     for fifteen in fifteensFound:
         scoreThisRound += 2
         print('15 for {0}'.format(scoreThisRound))
-        #print(' '.join(['%s' % c for c in fifteen]))
     # Find and print pairs
     pairsFound = findPairs(playerHand)
     for pair in pairsFound:
@@ -313,21 +225,18 @@ def calculateScoreForHand(hand, cutCard):
             print('Double Royal Pair for {0}'.format(scoreThisRound))
         else:
             print('YOU MADE A BOO BOO')
-        #print(' '.join(['%s' % c for c in pair]))
     # Find and print runs
     runFound = findRun(playerHand)
     runLength = len(runFound)
     if(runLength > 2):
         scoreThisRound += runLength
         print('Run of {0} for {1}'.format(runLength, scoreThisRound))
-        #print(' '.join(['%s' % c for c in runFound]))
     # Find flushes
     flushFound = findFlush(hand, cutCard)
     flushLength = len(flushFound)
     if(flushLength > 3):
         scoreThisRound += flushLength
         print('Flush of {0} for {1}'.format(flushLength, scoreThisRound))
-        #print(' '.join(['%s' % c for c in runFound]))
     # Find the nob
     hasNob = findNob(hand, cutCard)
     if(hasNob):
