@@ -4,42 +4,17 @@ from card import Card, CardSuit, CardValue
 class Play():
     def __init__(self):
         self.cards = []
-        self._points = None
-        self.pointLimit = 31
-        self.playerPasses = False
-        self.cpuPasses = False
+
+    def append(self, card):
+        self.cards.append(card)
 
     @property
     def points(self):
         return sum(card.valuePoints for card in self.cards)
 
-    def canHandPlay(self, hand):
-        if(len(hand) > 0):
-            for card in hand:
-                if(card.valuePoints+self.points <= 31):
-                    return True
-        return False
-
-    def takeCPUTurn(self, cpuHand):
-        # First find playable cards
-        playableCardIndexes = []
-        pointLimit = self.pointLimit-self.points
-        for i, card in enumerate(cpuHand):
-            if(card.valuePoints <= pointLimit):
-                playableCardIndexes.append(i)
-        # Select a random card for now
-        cpuCardPlayed = cpuHand.pop(random.choice(playableCardIndexes))
-        self.cards.append(cpuCardPlayed)
-        print('CPU plays {0}'.format(cpuCardPlayed))
-
-    def takePlayerTurn(self, playerHand):
-        # Auto Play
-        if(len(playerHand) == 1):
-            playerCardPlayed = playerHand.pop(0)
-        else:
-            playerCardPlayed = selectCardToPlay(playerHand, self.pointLimit-self.points)
-        self.cards.append(playerCardPlayed)
-        print('Player plays {0}'.format(playerCardPlayed))
+    @property
+    def pointLimit(self):
+        return 31 - self.points
 
     def calculateExtraPoints(self):
         # Can't get extra points if nothing is there
@@ -75,33 +50,11 @@ class Play():
             # Only checking last three cards
             sortedThree = sorted(self.cards[-3:], reverse=True)
             currentCardValue = sortedThree[0].value
-            if(sortedThree[0].value == (sortedThree[1].valueInt-1) and sortedThree[0].value == (sortedThree[2].valueInt-2)):
+            if(sortedThree[0].valueInt == (sortedThree[1].valueInt+1) and sortedThree[0].valueInt == (sortedThree[2].valueInt+2)):
                 print('Run for 3')
                 extraPoints += 3
 
         return extraPoints
 
-    def everyonePassed(self):
-        return (self.playerPasses and self.cpuPasses)
-
     def reset(self):
         self.cards = []
-        playerPasses = False
-        cpuPasses = False
-
-def selectCardToPlay(hand, pointLimit):
-    print('Player Hand: {0}'.format(' '.join(['%s' % c for c in hand])))
-    while True:
-        try:
-            cardIndex = int(input('Choose card (1-{0}): '.format(len(hand)))) - 1
-        except ValueError:
-            print('Error: Please enter a number 1-{0}.'.format(len(hand)))
-            continue
-        if(cardIndex < 0 or cardIndex >= len(hand)):
-            print('Error: Please enter a number 1-{0}.'.format(len(hand)))
-            continue
-        if(hand[cardIndex].valuePoints > pointLimit):
-            print('Error: That card cannot be played. Please enter a different number 1-{0}.'.format(len(hand)))
-            continue
-        else:
-            return hand.pop(cardIndex)
